@@ -2,7 +2,9 @@
 title: "Math 150 Survival Analysis Project"
 author: "Carrie Saada"
 date: "April 8, 2019"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r global_options, include=TRUE, message=FALSE, warning=FALSE}
