@@ -201,6 +201,20 @@ $(document).ready(function () {
 library(tidyverse)
 library(broom)
 library(survival)</code></pre>
+<div id="outline-of-something-new" class="section level1">
+<h1>Outline of “Something New”</h1>
+<p>For my “something new”, I will do a power analysis of the model. I will perform this analysis via simulation by randomly generating a dataset where the null hypothesis is false - there is a difference between the treatment groups. I think it will be useful to look at the power to distinguish between treatment and control, and between all 4 treatment groups (would we be able to distinguish IDV having an effect on survival in the ZDV + 3TC + IDV group, but not in the d4T + 3TC + IDV group?)</p>
+<p>The power analysis of the model is relevant to this survival analysis model because it is useful to know whether our model can reject the null hypothesis when it is warranted. If the model is not very powerful and we fail to reject the null hypothesis, it may be a good idea to continue research with a larger sample size. Or, if the model is powerful and we fail to reject the null hypothesis, we can say that if there were a true difference, our model would probably have detected it, so it may not be worth continuing the research.</p>
+<p>I’m going to use the class textbook and <em>The Analysis of Biological Data</em> by Whitlock and Schluter (2015) to learn about power and how it relates to sample and effect size. I will also read published articles such as Cohen 1992 adn Dorey 2011 (see working bibliography).</p>
+<p>This will be challenging because I need to learn how to apply power analysis to an experiment that has already been completed, rather than to determine an ideal sample size. Additionally, I will need to learn how to do power analysis simulations for survival data - how do I generate realistic survival data? What variables do I include? How do I handle effect size? What about censoring?</p>
+</div>
+<div id="working-bibliography" class="section level1">
+<h1>Working Bibliography</h1>
+<p>Cohen, Jacob. “Statistical Power Analysis.” Current Directions in Psychological Science, vol. 1, no. 3, June 1992, pp. 98–101. SAGE Journals, <a href="doi:10.1111/1467-8721.ep10768783" class="uri">doi:10.1111/1467-8721.ep10768783</a>.</p>
+<p>Dorey, Frederick J. “In Brief: Statistics in Brief: Statistical Power: What Is It and When Should It Be Used?” Clinical Orthopaedics and Related Research, vol. 469, no. 2, Feb. 2011, pp. 619–20. PubMed Central, <a href="doi:10.1007/s11999-010-1435-0" class="uri">doi:10.1007/s11999-010-1435-0</a>.</p>
+<p>Kuiper, Shonda, and Jeffrey Sklar. Practicing Statistics : Guided Investigations for the Second Course. Pearson, 2013.</p>
+<p>Whitlock, Michael, and Dolph Schluter. The Analysis of Biological Data. Second ed., Roberts and Company, 2015.</p>
+</div>
 <div id="importing-data" class="section level1">
 <h1>Importing <a href="data:#" class="uri">data:#</a></h1>
 <pre class="r"><code>AD = read.csv(&quot;AIDSdata.csv&quot;)</code></pre>
