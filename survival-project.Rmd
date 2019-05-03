@@ -14,7 +14,7 @@ library(tidyverse)
 library(broom)
 library(survival)
 library(survminer)
-
+library(coxed)
 ```
 
 ```{r}
@@ -24,24 +24,9 @@ AD = read.csv("AIDSdata.csv")
 
 #Introduction
 
-Questions: are we talking about why we're doing these stats or about why the study authors did the study? How do we handle the fact that this isn't our data and we don't really need to analyze it? How much history should there be in the introduction. 
-
-General to specific
-
-why was the research done?
-
-Why is the work important/what is its relevance
-
-Hypothesis/goals. The goal of the study was to figure out if indinavir is safe and effective to treat HIV-1. My goal is to analyze the study data to be able to predict the survival probability of an individual if they do or do not take the drug. Additionally, I want to determine the power of the study and how the sample size affects power. 
-
-Light on background/justification - why was it collected/why do we care? 
-
-
-Combinations of different drugs in treatment are an important aspect of HIV therapy to prevent the virus developing resistance to any one drug. For this reason, development of new drugs is vital. Hammer et al 1997 perfromed 
+Combinations of different drugs in treatment are an important aspect of HIV therapy to prevent the virus developing resistance to any one drug. For this reason, development of new drugs is vital. Hammer et al. performed a controlled trial using a protease inhibitor called indinavir in combination with two nucleotide analogues (Hammer et al. 1997). In this paper, I analyze the data collected by Hammer et al using a Cox Proportional Hazards model to investigate the effect of indinavir on survival. Additionally, I analyze the power of the Hammer study using a simulation of survival data with similar parameters. I hypothesize that indinavir will have a lower hazard of death or AIDS diagonsis than the control group, and that the Hammer study will have a moderately high power (high due to the large sample size, and moderately so due to the low number of events). 
 
 #Methods
-
-Do I need to describe how coxph works and how to do likelihood ratio test? 
 
 Power analysis: do I need to include all of the explanatory variables in the model I made or can I just generate data with one explanatory variable and use that for power analysis? How do I use sim.survdata? I know the factor difference between two hazard functions but I don't know what those hazard functions are other than that their ratio should be identical with time. 
 
@@ -55,18 +40,21 @@ It's okay if I can't justify power analysis with a real world reason. But can ta
 
 I developed a Cox Proportional Hazards model with multiple covariates to fit the data. The response variable of interst was time to AIDS defining diagnosis or death. 
 
-I chose the explanatory variables for the model using backward selection. I began with a fully interactive model with the explanatory variables: whether the patient was treated with IDV (tx), the patient's CD4 stratum at screening (strat4), their sex (sex), race/ethnicity (raceth), IV drug use history (ivdrug), whether the patient was a hemophiliac (hemophil), their score on the Karnofsky Performance Scale (karnof), their baseline CD4 count (CD4), the number of months of prior ZDV use (priorzdv), and their age at enrollment (age). I eliminated variables based starting with those that had the highest p-value in their interaction terms, then checked that the resulting Cox PH model was equivalent to the previous model using the likelihood ratio test. I eleminated the follow variables in order: whether the patient was a hemophiliac, the patient's CD4 stratum at screening, all interaction terms with a p-value greater than 0.1, all interaction terms with the patient's Karnofsky score, and the interaction term for race/ethnicity and age. I then checked the resulting model against the original full model using the likelihood ratio test to double check the result. Because treatment with IDV had a high (>0.05) p-value in the resulting model, but its interaction terms were less than 0.05, I compared the model I developed to a model without the treatment with IDV variable or its interaction terms. I analyzed the effect of including the IDV treatment variable using the likelihood ratio test between the two models. 
+I chose the explanatory variables for the model using backward selection. I began with a fully interactive model with the explanatory variables: whether the patient was treated with IDV (tx), the patient's CD4 stratum at screening (strat4), their sex (sex), race/ethnicity (raceth), IV drug use history (ivdrug), whether the patient was a hemophiliac (hemophil), their score on the Karnofsky Performance Scale (karnof), their baseline CD4 count (CD4), the number of months of prior ZDV use (priorzdv), and their age at enrollment (age). I eliminated variables based starting with those that had the highest p-value in their interaction terms, then checked that the resulting Cox PH model was equivalent to the previous model using the likelihood ratio test. I eleminated the following variables in order: whether the patient was a hemophiliac, the patient's CD4 stratum at screening, all interaction terms with a p-value greater than 0.1, all interaction terms with the patient's Karnofsky score (the term for the score without interaction remained in the model), and the interaction term for race/ethnicity and age. I then checked the resulting model against the original full model using the likelihood ratio test to double check the result. Because treatment with IDV had a high (>0.05) p-value in the resulting model, but its interaction terms were less than 0.05, I compared the model I developed to a model without the treatment with IDV variable or its interaction terms. I analyzed the effect of including the IDV treatment variable using the likelihood ratio test between the two models. 
 
 ##Power Analysis
 
-For my "something new", I will do a power analysis of the model. I will perform this analysis via simulation by randomly generating a dataset where the null hypothesis is false - there is a difference between the treatment groups. I think it will be useful to look at the power to distinguish between treatment and control, and between all 4 treatment groups (would we be able to distinguish IDV having an effect on survival in the ZDV + 3TC + IDV group, but not in the d4T + 3TC + IDV group?)  
+Power analysis is valuable because it allows us to plan the sample size of experiments based on an estimate for the minimum effect size we expect. Most experiments aim for a power of at least 0.80 (Whitlock and Schluter 2015). That is, in a situation where the null hypothesis is false, we will successfully reject the null hypothesis 80% of the time. I investigated the effect of sample size and effect size on simulated survival data with similar parameters to the Hammer et al study. 
 
-The power analysis of the model is relevant to this survival analysis model because it is useful to know whether our model can reject the null hypothesis when it is warranted. If the model is not very powerful and we fail to reject the null hypothesis, it may be a good idea to continue research with a larger sample size. Or, if the model is powerful and we fail to reject the null hypothesis, we can say that if there were a true difference, our model would probably have detected it, so it may not be worth continuing the research. 
+I used sim.survdata from the coxed R library to simulate the data. The Hammer et al data used for this project had 69 events out of 851 patients, so I used 782/851 for the proportion of censored observations in the simulated data. Sample size and effect size were varied as described below. sim.survdata uses a normal distribution for the explanatory variable, rather than a binary categorical variable. I did not include the patient-specific variables that were not controlled by the study. For each value of the varied parameter, I simulated 1,000 data sets and calculated the proportion that were significant (p < 0.05). 
 
-I'm going to use the class textbook and *The Analysis of Biological Data* by Whitlock and Schluter (2015) to learn about power and how it relates to sample and effect size. I will also read published articles such as Cohen 1992 adn Dorey 2011 (see working bibliography). 
+###Sample Size
 
-This will be challenging because I need to learn how to apply power analysis to an experiment that has already been completed, rather than to determine an ideal sample size. Additionally, I will need to learn how to do power analysis simulations for survival data - how do I generate realistic survival data? What variables do I include? How do I handle effect size? What about censoring?
+To determine the effect of sample size on power, I used the previously described technique with an effect size of beta = -1.454. This is the effect size I determined in my Cox PH model for the data. I ran the simulation for sample sizes of 100, 400, 800, 851, 1200, 1600, and 4000. I used 851 entries of Hammer et al's data (a small number of entries were not used to remove a treatment group irrelevant to this analysis), so I used this number to represent the sample size of the study. 
 
+###Effect Size
+
+To determine the effect of effect size on power, I used the same technique as before but varied the effect size, keeping sample size constant at 851, the size of our data set. I set beta equal to 0, -0.2, -0.5, -1, -1.454, -1.5, -2, and -3. Note that beta = 0 is a null sample, and that beta = -1.454 is the value calculated for that coefficient by my Cox PH model of the Hammer et al data. 
 
 #Results
 
@@ -74,7 +62,7 @@ This will be challenging because I need to learn how to apply power analysis to 
 
 I developed I Cox Proportional Hazards model for the event of diagnosis with AIDS or death, as explained by treatment with IDV and a series of patient-specific factors. 
 
-```{r}
+```{r, echo = FALSE}
 model = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*sex + ivdrug*priorzdv + karnof + cd4, data = AD)
 model %>% tidy()
 ```
@@ -83,15 +71,62 @@ The coefficient for treatment with IDV is -1.454 (95% confidnece interval [-3.14
 
 ##Power Analysis
 
+###Sample Size
 
-Powers:
-[1] 0.036 0.224 0.681 0.787 0.722 0.698 0.641 0.557
-For betas 
-      0,  -0.2, -0.5, -1,  -1.454, -1.5, -2,  -3
+I tested the effect of sample size on the power of the study using 1000 simulated samples per sample size, with a constant beta coefficient of -1.454. 
+
+| Sample Size | Power |
+|-------------|-------|
+| 100         | 0.314 |
+| 400         | 0.626 |
+| 800         | 0.715 |
+| 851         | 0.724 |
+| 1200        | 0.757 |
+| 1600        | 0.789 |
+| 4000        | 0.869 |
+
+```{r, echo = FALSE}
+popx = c(100, 400, 800, 851, 1200, 1600, 4000)
+popy = c(0.314, 0.626, 0.715, 0.724, 0.757, 0.789, 0.869)
+plot(popx, popy, main = "Power vs Sample Size", xlab = "Sample Size", ylab = "Power")
+```
+
+Power increases with sample size, in a concave down manner. Based on this analysis, the power of a Cox Proportional Hazards analysis on a study with 851 subjects, the same proportion of censored obserations, and the same beta coefficient as the Hammer et al study is 0.724. 
+
+
+###Effect Size
+
+I tested the effect of effect size on the power of the study with 1000 simulated samples per effect size, with a constant population of 851. The coefficient for a Cox PH model is beta, and the hazard ratio is exp(beta), so I've provided both numerically. 
+
+| Beta        | Exp(Beta)   | Power |
+|-------------|-------------|-------|
+| 0           | 1           | 0.036 |
+| -0.2        | 0.8187      | 0.224 |
+| -0.5        | 0.6065      | 0.681 |
+| -1          | 0.3679      | 0.787 |
+| -1.454      | 0.2336      | 0.722 |
+| -1.5        | 0.2231      | 0.698 |
+| -2          | 0.1353      | 0.641 |
+| -3          | 0.0498      | 0.557 |
+
+
+```{r, echo = FALSE}
+betax = c(0, -0.2, -0.5, -1, -1.454, -1.5, -2, -3)
+betay = c(0.036, 0.224, 0.681, 0.787, 0.722, 0.698, 0.641, 0.557)
+plot(betax, betay, main = "Power vs Effect Size (beta)", xlab = "Effect Size beta", ylab = "Power")
+expbetax = c(1.00000000, 0.81873075, 0.60653066, 0.36787944, 0.23363388, 0.22313016, 0.13533528, 0.04978707)
+plot(expbetax, betay, main = "Power vs Effect Size, exp(beta)", xlab = "Effect Size exp(beta)", ylab = "Power")
+```
+
+Power increases as the magnitude of the effect increases up to a point, then begins to slowly decrease. As the effect size gets farther from zero, for beta, or farther from one, for exp(beta), the power increases. Note that because exp(beta) is a ratio, a larger magnitude of multiplicative difference is distance from 1, not zero. The peak is near beta = -1, or exp(beta) = 0.3679, which has a power of 0.787. As beta continues to get farther from zero and exp(beta) gets farther from 1 past the peak, the power decreases again.
+
+The power using the effect size calculated using the Cox PH analysis for the Hammer et al data is 0.722, which is very similar to the value of 0.724 from the sample size analysis. Since for those two entries all of the parameters were identical, that consistency is encouraging for the validity of this analysis. 
 
 #Discussion
 
-#Working Bibliography
+
+
+#Bibliography
 
 Cohen, Jacob. “Statistical Power Analysis.” Current Directions in Psychological Science, vol. 1, no. 3, June 1992, pp. 98–101. SAGE Journals, doi:10.1111/1467-8721.ep10768783.
 
@@ -102,3 +137,7 @@ Hammer, Scott M et al. "A Controlled Trial of Two Nucleoside Analogues plus Indi
 Kuiper, Shonda, and Jeffrey Sklar. Practicing Statistics : Guided Investigations for the Second Course. Pearson, 2013.
 
 Whitlock, Michael, and Dolph Schluter. The Analysis of Biological Data. Second ed., Roberts and Company, 2015.
+
+#Appendices
+
+The code used for these analyses can be found in "survival-project-code.Rmd" in the GitHub repository with this project. 

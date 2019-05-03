@@ -37,7 +37,7 @@ pval = scx$waldtest[3]
 
 X might be the number of covariates? 
 
-```{r}
+```{r, eval = FALSE}
 loopVals = c(1:50)
 output = rep(NA, length(loopVals))
 #output
@@ -50,7 +50,7 @@ for(i in loopVals){
 sum(output) / length(output)
 ```
 
-```{r, eval = False}
+```{r, eval = FALSE}
 betaVals = c(0, -0.2, -0.5, -1, -1.454, -1.5, -2, -3)
 powersForBeta = rep(NA, length(betaVals))
 outerLoop = c(1:length(betaVals)) #loop through betas
@@ -68,6 +68,40 @@ for(i in outerLoop){
 powersForBeta
 
 
+```
+
+```{r, eval = FALSE}
+popVals = c(100, 400, 800, 851, 1200, 1600, 4000)
+powersForPop = rep(NA, length(popVals))
+outerLoop = c(1:length(popVals)) #loop through betas
+innerLoop = c(1:1000) #replicates
+for(i in outerLoop){
+  pBools = rep(NA, length(innerLoop))
+  for(j in innerLoop){
+    loopSim = sim.survdata(popVals[i], 100, x= 1, beta = -1.454, censor = (851 - 69)/851)
+    pval = summary(coxph(Surv(y, failed) ~ X, data = loopSim$data))$waldtest[3]
+    pBools[j] = pval < 0.05
+  }
+  powersForPop[i] = sum(pBools) / length(pBools)
+}
+
+powersForPop
+
+
+```
+
+```{r}
+popx = c(100, 400, 800, 851, 1200, 1600, 4000)
+popy = c(0.314, 0.626, 0.715, 0.724, 0.757, 0.789, 0.869)
+plot(popx, popy, main = "Power vs Sample Size", xlab = "Sample Size", ylab = "Power")
+```
+
+```{r}
+betax = c(0, -0.2, -0.5, -1, -1.454, -1.5, -2, -3)
+betay = c(0.036, 0.224, 0.681, 0.787, 0.722, 0.698, 0.641, 0.557)
+plot(betax, betay, main = "Power vs Effect Size (beta)", xlab = "Effect Size beta", ylab = "Power")
+expbetax = c(1.00000000, 0.81873075, 0.60653066, 0.36787944, 0.23363388, 0.22313016, 0.13533528, 0.04978707)
+plot(expbetax, betay, main = "Power vs Effect Size, exp(beta)", xlab = "Effect Size exp(beta)", ylab = "Power")
 ```
 
 
