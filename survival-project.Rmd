@@ -1,5 +1,5 @@
 ---
-title: "Math 150 Survival Analysis Project"
+title: "Treatment With Indinavir Results in a Reduced Hazard of AIDS Diagnosis or Death: Cox Proportional Hazards Model and Power Analysis of Hammer et al., 1997"
 author: "Carrie Saada"
 date: "April 8, 2019"
 output:
@@ -14,9 +14,33 @@ library(tidyverse)
 library(broom)
 library(survival)
 library(survminer)
+
 ```
 
-#Outline of "Something New"#
+```{r}
+AD = read.csv("AIDSdata.csv")
+```
+
+
+#Introduction
+
+General to specific
+
+why was the research done?
+
+Why is the work important/what is its relevance
+
+Hypothesis/goals. The goal of the study was to figure out if indinavir is safe and effective to treat HIV-1. My goal is to analyze the study data to be able to predict the survival probability of an individual if they do or do not take the drug. Additionally, I want to determine the power of the study and how the sample size affects power. 
+
+#Methods
+
+##Cox Proportional Hazards Model
+
+I developed a Cox Proportional Hazards model with multiple covariates to fit the data. The response variable of interst was time to AIDS defining diagnosis or death. 
+
+I chose the explanatory variables for the model using backward selection. I began with a fully interactive model with the explanatory variables: whether the patient was treated with IDV (tx), the patient's CD4 stratum at screening (strat4), their sex (sex), race/ethnicity (raceth), IV drug use history (ivdrug), whether the patient was a hemophiliac (hemophil), their score on the Karnofsky Performance Scale (karnof), their baseline CD4 count (CD4), the number of months of prior ZDV use (priorzdv), and their age at enrollment (age). I eliminated variables based starting with those that had the highest p-value in their interaction terms, then checked that the resulting Cox PH model was equivalent to the previous model using the likelihood ratio test. I eleminated the follow variables in order: whether the patient was a hemophiliac, the patient's CD4 stratum at screening, all interaction terms with a p-value greater than 0.1, all interaction terms with the patient's Karnofsky score, and the interaction term for race/ethnicity and age. I then checked the resulting model against the original full model using the likelihood ratio test to double check the result. Because treatment with IDV had a high (>0.05) p-value in the resulting model, but its interaction terms were less than 0.05, I compared the model I developed to a model without the treatment with IDV variable or its interaction terms. I analyzed the effect of including the IDV treatment variable using the likelihood ratio test between the two models. 
+
+##Power Analysis
 
 For my "something new", I will do a power analysis of the model. I will perform this analysis via simulation by randomly generating a dataset where the null hypothesis is false - there is a difference between the treatment groups. I think it will be useful to look at the power to distinguish between treatment and control, and between all 4 treatment groups (would we be able to distinguish IDV having an effect on survival in the ZDV + 3TC + IDV group, but not in the d4T + 3TC + IDV group?)  
 
@@ -26,28 +50,32 @@ I'm going to use the class textbook and *The Analysis of Biological Data* by Whi
 
 This will be challenging because I need to learn how to apply power analysis to an experiment that has already been completed, rather than to determine an ideal sample size. Additionally, I will need to learn how to do power analysis simulations for survival data - how do I generate realistic survival data? What variables do I include? How do I handle effect size? What about censoring?
 
-#Working Bibliography#
+
+#Results
+
+##Cox Proportional Hazards Model
+
+I developed I Cox Proportional Hazards model for the event of diagnosis with AIDS or death, as explained by treatment with IDV and a series of patient-specific factors. 
+
+```{r}
+model = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*sex + ivdrug*priorzdv + karnof + cd4, data = AD)
+model %>% tidy()
+```
+
+The coefficient for treatment with IDV is -1.454 (95% confidnece interval [-3.145, 0.237]). This tells us that the hazard ratio between the treatment and control groups is $e^{-1.454} = 0.234$, meaning that the treatment group has a lower hazard than the control group. However, the 95% confidence interval includes zero, so it is possible the opposite is true. The treatment variable interacts with both the patient's sex and any prior treatment with ZDV, and these variables are significant to the model with p-values of less than 0.05. To asses the significance of the treatment group to the model, I compared the likelihood of a model with the treatment variable and interactions to the likelihood of a model without either. I found that the p-value for that likelihood ratio test was 0.0003078, whihc is less than 0.05 by two orders of magnitude. Based on this analysis, 
+
+##Power Analysis
+
+#Discussion
+
+#Working Bibliography
 
 Cohen, Jacob. “Statistical Power Analysis.” Current Directions in Psychological Science, vol. 1, no. 3, June 1992, pp. 98–101. SAGE Journals, doi:10.1111/1467-8721.ep10768783.
 
 Dorey, Frederick J. “In Brief: Statistics in Brief: Statistical Power: What Is It and When Should It Be Used?” Clinical Orthopaedics and Related Research, vol. 469, no. 2, Feb. 2011, pp. 619–20. PubMed Central, doi:10.1007/s11999-010-1435-0.
 
+Hammer, Scott M et al. "A Controlled Trial of Two Nucleoside Analogues plus Indinavir in Persons with Human Immunodeficiency Virus Infection and CD4 Cell Counts of 200 per Cubic Millimeter or Less." NEJM. Sep 1997. 
+
 Kuiper, Shonda, and Jeffrey Sklar. Practicing Statistics : Guided Investigations for the Second Course. Pearson, 2013.
 
 Whitlock, Michael, and Dolph Schluter. The Analysis of Biological Data. Second ed., Roberts and Company, 2015.
-
-
-```{r}
-AD = read.csv("AIDSdata.csv")
-```
-
-The model is:
-
-```{r}
-model = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*sex + ivdrug*priorzdv + karnof + cd4, data = AD)
-model
-```
-
-
-P value of 0.000307816 that model is the same without tx (so model is not the same)
-
