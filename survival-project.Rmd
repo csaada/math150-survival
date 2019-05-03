@@ -3,8 +3,8 @@ title: "Math 150 Survival Analysis Project"
 author: "Carrie Saada"
 date: "April 8, 2019"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r global_options, include=TRUE, message=FALSE, warning=FALSE}
@@ -37,125 +37,9 @@ Kuiper, Shonda, and Jeffrey Sklar. Practicing Statistics : Guided Investigations
 Whitlock, Michael, and Dolph Schluter. The Analysis of Biological Data. Second ed., Roberts and Company, 2015.
 
 
-#Importing data:#
-
 ```{r}
 AD = read.csv("AIDSdata.csv")
 ```
-
-#Some exploratory plots:#
-
-```{r}
-hist(AD$cd4, main = "Histogram of CD4 counts", xlab = "number of cd4 t-cells")
-hist(AD$karnof, main = "Histogram of Karnof scores", xlab = "Karnoff score", breaks = 5)
-#I'm having a hard time getting the histogram breaks right - karnoff scores are multiples of 10 and it doesn't like that
-plot(AD$age, AD$karnof, main = "plot of karnof score vs age")
-plot(AD$cd4, AD$time, main ="time vs cd4 count, ignoring censoring")
-```
-
-
-##Working on COX model
-
-Variables: 
-Response: time, censor
-Not using: time.d, censor.d (because we're using "aids defining event or death", not just death)
-Explanatory: tx, txgrp, strat2, sex, raceth, ivdrug, hemophil, karnof, cd4, priorzdv, age
-
-
-Let's check if we need interaction. Likelihood ratio test is 2ln(Likelihood of full) - 2ln(Likelihood of reduced)
-
-```{r}
-full = coxph(Surv(time, censor) ~ (tx+strat2+sex+raceth+ivdrug+hemophil+karnof+cd4+priorzdv+age)^2, data = AD) 
-full$loglik[2]
-red = coxph(Surv(time, censor) ~ tx+strat2+sex+raceth+ivdrug+hemophil+karnof+cd4+priorzdv+age, data = AD) 
-red$loglik[2]
-length(red$coefficients)
-1 - pchisq(2 * full$loglik[2] - 2 * red$loglik[2], df = length(full$coefficients) - length(red$coefficients))
-full
-```
-
-This is close enough to 0.05 that I'm not comfortable eliminating interaction.  
-
-lets eliminiate hemophil entirely
-
-```{r}
-full = coxph(Surv(time, censor) ~ (tx+strat2+sex+raceth+ivdrug+hemophil+karnof+cd4+priorzdv+age)^2, data = AD) 
-full$loglik[2]
-red = coxph(Surv(time, censor) ~ (tx+strat2+sex+raceth+ivdrug+karnof+cd4+priorzdv+age)^2, data = AD) 
-red$loglik[2]
-1 - pchisq(2 * full$loglik[2] - 2 * red$loglik[2] , df = length(full$coefficients) - length(red$coefficients))
-#red
-
-```
-
-
-We can eliminate hemophil entirely. Let's try that with strat 2
-
-```{r}
-full = coxph(Surv(time, censor) ~ (tx+strat2+sex+raceth+ivdrug+karnof+cd4+priorzdv+age)^2, data = AD) 
-full$loglik[2]
-red = coxph(Surv(time, censor) ~ (tx+sex+raceth+ivdrug+karnof+cd4+priorzdv+age)^2, data = AD) 
-red$loglik[2]
-1 - pchisq(2 * full$loglik[2] - 2 * red$loglik[2] , df = length(full$coefficients) - length(red$coefficients))
-red
-
-```
-
-Okay let's eliminate anything with a p-value of 0.1 or larger. 
-
-```{r}
-full = coxph(Surv(time, censor) ~ (tx+sex+raceth+ivdrug+karnof+cd4+priorzdv+age)^2, data = AD)  
-full$loglik[2]
-red = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*(sex + karnof + age) + ivdrug*(karnof + priorzdv) + karnof*age + cd4, data = AD) 
-red$loglik[2]
-1 - pchisq(2 * full$loglik[2] - 2 * red$loglik[2] , df = length(full$coefficients) - length(red$coefficients))
-red
-
-```
-
-We can do that, so let's eliminate karnof$*$age and karnof$*$ivdrug
-
-```{r}
-full = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*(sex + karnof + age) + ivdrug*(karnof + priorzdv) + karnof*age + cd4, data = AD)
-full$loglik[2]
-red = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*(sex + karnof + age) + ivdrug*priorzdv + cd4, data = AD) 
-red$loglik[2]
-1 - pchisq(2 * full$loglik[2] - 2 * red$loglik[2] , df = length(full$coefficients) - length(red$coefficients))
-red
-
-```
-
-Let's try raceth$*$age
-
-```{r}
-full = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*sex + raceth*karnof + raceth*age + ivdrug*priorzdv + cd4, data = AD) 
-full$loglik[2]
-red = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*sex + raceth*karnof + ivdrug*priorzdv + cd4, data = AD)
-red$loglik[2]
-1 - pchisq(2 * full$loglik[2] - 2 * red$loglik[2] , df = length(full$coefficients) - length(red$coefficients))
-red
-```
-
-Let's try raceth$*$karnof
-
-```{r}
-full = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*sex + raceth*karnof + ivdrug*priorzdv + cd4, data = AD) 
-full$loglik[2]
-red = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*sex + karnof + ivdrug*priorzdv + cd4, data = AD)
-red$loglik[2]
-1 - pchisq(2 * full$loglik[2] - 2 * red$loglik[2] , df = length(full$coefficients) - length(red$coefficients))
-red
-```
-
-Okay all the interaction terms are now below 0.05 and the only p-values above 0.05 are variables that are also in interaction terms. So, I have a model. Let's check against the full model with all interaction just to be sure. 
- 
-```{r}
-full = coxph(Surv(time, censor) ~ (tx+strat2+sex+raceth+ivdrug+hemophil+karnof+cd4+priorzdv+age)^2, data = AD) 
-red = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*sex + ivdrug*priorzdv + karnof + cd4, data = AD)
-1 - pchisq(2 * full$loglik[2] - 2 * red$loglik[2] , df = length(full$coefficients) - length(red$coefficients))
-```
-
-Alright that works then. 
 
 The model is:
 
@@ -164,13 +48,6 @@ model = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*sex + ivdrug*pri
 model
 ```
 
-Let's test removing tx from the model to see what that does to the p-value so I can talk about it in my results. 
-
-```{r}
-model = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*sex + ivdrug*priorzdv + karnof + cd4, data = AD)
-modelNoTx = coxph(Surv(time, censor) ~ raceth*sex + ivdrug*priorzdv + karnof + cd4, data = AD)
-1 - pchisq(2 * model$loglik[2] - 2 * modelNoTx$loglik[2] , df = length(model$coefficients) - length(modelNoTx$coefficients))
-```
 
 P value of 0.000307816 that model is the same without tx (so model is not the same)
 
