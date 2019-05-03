@@ -24,6 +24,8 @@ AD = read.csv("AIDSdata.csv")
 
 #Introduction
 
+Questions: are we talking about why we're doing these stats or about why the study authors did the study? How do we handle the fact that this isn't our data and we don't really need to analyze it? How much history should there be in the introduction. 
+
 General to specific
 
 why was the research done?
@@ -32,7 +34,22 @@ Why is the work important/what is its relevance
 
 Hypothesis/goals. The goal of the study was to figure out if indinavir is safe and effective to treat HIV-1. My goal is to analyze the study data to be able to predict the survival probability of an individual if they do or do not take the drug. Additionally, I want to determine the power of the study and how the sample size affects power. 
 
+Light on background/justification - why was it collected/why do we care? 
+
+
+Combinations of different drugs in treatment are an important aspect of HIV therapy to prevent the virus developing resistance to any one drug. For this reason, development of new drugs is vital. Hammer et al 1997 perfromed 
+
 #Methods
+
+Do I need to describe how coxph works and how to do likelihood ratio test? 
+
+Power analysis: do I need to include all of the explanatory variables in the model I made or can I just generate data with one explanatory variable and use that for power analysis? How do I use sim.survdata? I know the factor difference between two hazard functions but I don't know what those hazard functions are other than that their ratio should be identical with time. 
+
+set beta to be alt true, take data simulated from that and put it in coxph. Function doesn't allow much flexibility - like binary covariate. 
+
+what the hazard function is might effect the power, but we can't relate the simulation to the real data because we don't know what our hazard function is - also this doesn't deal with censoring - and we only have like 80 events out of 800. Doesn't have binary x values, and our treatment x is binary. Can talk about this in the discussion. 
+
+It's okay if I can't justify power analysis with a real world reason. But can talk about how it would be used (and how ours is not useful because of the above reasons)
 
 ##Cox Proportional Hazards Model
 
@@ -65,6 +82,12 @@ model %>% tidy()
 The coefficient for treatment with IDV is -1.454 (95% confidnece interval [-3.145, 0.237]). This tells us that the hazard ratio between the treatment and control groups is $e^{-1.454} = 0.234$, meaning that the treatment group has a lower hazard than the control group. However, the 95% confidence interval includes zero, so it is possible the opposite is true. The treatment variable interacts with both the patient's sex and any prior treatment with ZDV, and these variables are significant to the model with p-values of less than 0.05. To asses the significance of the treatment group to the model, I compared the likelihood of a model with the treatment variable and interactions to the likelihood of a model without either. I found that the p-value for that likelihood ratio test was 0.0003078, whihc is less than 0.05 by two orders of magnitude. Based on this analysis, 
 
 ##Power Analysis
+
+
+Powers:
+[1] 0.036 0.224 0.681 0.787 0.722 0.698 0.641 0.557
+For betas 
+      0,  -0.2, -0.5, -1,  -1.454, -1.5, -2,  -3
 
 #Discussion
 

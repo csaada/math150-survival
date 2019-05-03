@@ -14,15 +14,65 @@ library(tidyverse)
 library(broom)
 library(survival)
 library(survminer)
+library(coxed)
 ```
 
-#Importing data:#
+#Importing data:
 
 ```{r}
 AD = read.csv("AIDSdata.csv")
 ```
 
-#Some exploratory plots:#
+
+#Trying to do power analysis
+```{r}
+null = sim.survdata(851, 100, x = 1, beta = 0, censor = (851 - 69)/851)
+alt = sim.survdata(851, 100, x= 1, beta = -1.454, censor = (851 - 69)/851)
+#alt$data$y
+cx = coxph(Surv(y, failed) ~ X, data = alt$data)
+#coxph(Surv(y, failed) ~ X, data = null$data)
+scx = summary(cx)
+pval = scx$waldtest[3]
+```
+
+X might be the number of covariates? 
+
+```{r}
+loopVals = c(1:50)
+output = rep(NA, length(loopVals))
+#output
+for(i in loopVals){
+  loopSim = sim.survdata(851, 100, x= 1, beta = -1.454, censor = (851 - 69)/851)
+  pval = summary(coxph(Surv(y, failed) ~ X, data = loopSim$data))$waldtest[3]
+  output[i] = pval < 0.05
+  
+}
+sum(output) / length(output)
+```
+
+```{r, eval = False}
+betaVals = c(0, -0.2, -0.5, -1, -1.454, -1.5, -2, -3)
+powersForBeta = rep(NA, length(betaVals))
+outerLoop = c(1:length(betaVals)) #loop through betas
+innerLoop = c(1:1000) #replicates
+for(i in outerLoop){
+  pBools = rep(NA, length(innerLoop))
+  for(j in innerLoop){
+    loopSim = sim.survdata(851, 100, x= 1, beta = betaVals[i], censor = (851 - 69)/851)
+    pval = summary(coxph(Surv(y, failed) ~ X, data = loopSim$data))$waldtest[3]
+    pBools[j] = pval < 0.05
+  }
+  powersForBeta[i] = sum(pBools) / length(pBools)
+}
+
+powersForBeta
+
+
+```
+
+
+
+#Some exploratory plots:
 
 ```{r}
 hist(AD$cd4, main = "Histogram of CD4 counts", xlab = "number of cd4 t-cells")
