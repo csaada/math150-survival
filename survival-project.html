@@ -508,7 +508,7 @@ red = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*sex + ivdrug*prior
 1 - pchisq(2 * full$loglik[2] - 2 * red$loglik[2] , df = length(full$coefficients) - length(red$coefficients))</code></pre>
 <pre><code>## [1] 0.6505501</code></pre>
 <p>Alright that works then.</p>
-<p>The model is</p>
+<p>The model is:</p>
 <pre class="r"><code>model = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*sex + ivdrug*priorzdv + karnof + cd4, data = AD)
 model</code></pre>
 <pre><code>## Call:
@@ -530,6 +530,12 @@ model</code></pre>
 ## 
 ## Likelihood ratio test=104.2  on 11 df, p=&lt; 2.2e-16
 ## n= 851, number of events= 69</code></pre>
+<p>Let’s test removing tx from the model to see what that does to the p-value so I can talk about it in my results.</p>
+<pre class="r"><code>model = coxph(Surv(time, censor) ~ tx*(sex + priorzdv) + raceth*sex + ivdrug*priorzdv + karnof + cd4, data = AD)
+modelNoTx = coxph(Surv(time, censor) ~ raceth*sex + ivdrug*priorzdv + karnof + cd4, data = AD)
+1 - pchisq(2 * model$loglik[2] - 2 * modelNoTx$loglik[2] , df = length(model$coefficients) - length(modelNoTx$coefficients))</code></pre>
+<pre><code>## [1] 0.000307816</code></pre>
+<p>P value of 0.000307816 that model is the same without tx (so model is not the same)</p>
 </div>
 </div>
 
