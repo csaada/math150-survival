@@ -103,8 +103,22 @@ plot(betax, betay, main = "Power vs Effect Size (beta)", xlab = "Effect Size bet
 expbetax = c(1.00000000, 0.81873075, 0.60653066, 0.36787944, 0.23363388, 0.22313016, 0.13533528, 0.04978707)
 plot(expbetax, betay, main = "Power vs Effect Size, exp(beta)", xlab = "Effect Size exp(beta)", ylab = "Power")
 ```
+Updated power plot 
 
+```{r}
+plot(expbetax, betay, main = "Power vs Effect Size, exp(beta)", xlab = "Effect Size exp(beta)", ylab = "Power", col=ifelse(expbetax==expbetax[5], "red", "black"),pch=ifelse(expbetax==expbetax[5], 15, 19))
+```
 
+| Beta        | Exp(Beta)   | Power |
+|-------------|-------------|-------|
+| 0           | 1           | 0.036 |
+| -0.2        | 0.8187      | 0.224 |
+| -0.5        | 0.6065      | 0.681 |
+| -1          | 0.3679      | 0.787 |
+| **-1.454**  |**0.2336**   | **0.722** |
+| -1.5        | 0.2231      | 0.698 |
+| -2          | 0.1353      | 0.641 |
+| -3          | 0.0498      | 0.557 |
 
 #Some exploratory plots:
 
